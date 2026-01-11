@@ -2,84 +2,214 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>TAWSIL - Boutique en ligne</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #ffffff;
-            color: #000000;
-        }
-        header {
-            background: #000;
-            color: #fff;
-            padding: 20px;
-            text-align: center;
-        }
-        .container {
-            padding: 20px;
-        }
-        .product {
-            border: 1px solid #000;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-        .product h3 {
-            margin-top: 0;
-        }
-        .btn {
-            display: inline-block;
-            padding: 10px 15px;
-            margin: 5px 5px 0 0;
-            text-decoration: none;
-            color: #fff;
-            background: #000;
-        }
-        .btn.whatsapp {
-            background: #25D366;
-        }
-        footer {
-            background: #000;
-            color: #fff;
-            text-align: center;
-            padding: 10px;
-            margin-top: 30px;
-        }
-    </style>
+    <title>Tawsil - Mini Amazon</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <header>
+        <div class="logo">Tawsil</div>
+        <input type="text" id="search-bar" placeholder="Rechercher un produit..." oninput="searchProducts()">
+        <div class="cart" onclick="toggleCart()">
+            Panier (<span id="cart-count">0</span>)
+        </div>
+    </header>
 
-<header>
-    <h1>TAWSIL</h1>
-    <p>Votre boutique en ligne simple & rapide</p>
-</header>
-
-<div class="container">
-
-    <div class="product">
-        <h3>Produit 1</h3>
-        <p>Description du produit ici.</p>
-        <p><strong>Prix : 99 MAD</strong></p>
-
-        <!-- WhatsApp -->
-        <a class="btn whatsapp"
-           href="https://wa.me/212600000000?text=Bonjour%20je%20veux%20commander%20le%20Produit%201">
-           Commander WhatsApp
-        </a>
-
-        <!-- PayPal -->
-        <a class="btn"
-           href="https://www.paypal.com">
-           Payer avec PayPal
-        </a>
+    <div id="cart-container" class="cart-container hidden">
+        <h3>Panier</h3>
+        <ul id="cart-items"></ul>
+        <p>Total : <span id="cart-total">0</span> €</p>
+        <button onclick="checkout()">Commander</button>
     </div>
 
-</div>
+    <main>
+        <div id="products-container" class="products-grid"></div>
+    </main>
 
-<footer>
-    © 2026 TAWSIL – Tous droits réservés
-</footer>
+    <footer>
+        <p>&copy; 2026 Tawsil. Tous droits réservés.</p>
+    </footer>
 
+    <script src="script.js"></script>
 </body>
 </html>
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f5f5f5;
+}
+
+header {
+    background-color: #232f3e;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    gap: 20px;
+}
+
+header .logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+header input {
+    flex: 1;
+    padding: 8px;
+    border-radius: 5px;
+    border: none;
+}
+
+header .cart {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.product-card {
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.product-card img {
+    max-width: 100%;
+    border-radius: 10px;
+}
+
+.product-card h3 {
+    margin: 10px 0 5px;
+}
+
+.product-card p {
+    margin: 5px 0;
+}
+
+.product-card button {
+    background-color: #ffa41c;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #232f3e;
+    color: white;
+    margin-top: 20px;
+}
+
+.cart-container {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    width: 300px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+.cart-container.hidden {
+    display: none;
+}
+
+.cart-container ul {
+    list-style: none;
+    padding: 0;
+}
+
+.cart-container li {
+    margin: 5px 0;
+}
+let cart = [];
+let products = [];
+
+// Charger les produits depuis JSON
+fetch('products.json')
+    .then(res => res.json())
+    .then(data => {
+        products = data;
+        displayProducts(products);
+    });
+
+function displayProducts(list) {
+    const container = document.getElementById('products-container');
+    container.innerHTML = '';
+    list.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+            <img src="images/${product.image}" alt="${product.name}">
+            <h3>${product.name}</h3>
+            <p>${product.price} €</p>
+            <button onclick="addToCart('${product.name}', ${product.price})">Ajouter au panier</button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// Ajouter au panier
+function addToCart(name, price) {
+    cart.push({name, price});
+    updateCart();
+}
+
+function updateCart() {
+    const items = document.getElementById('cart-items');
+    const count = document.getElementById('cart-count');
+    const total = document.getElementById('cart-total');
+
+    items.innerHTML = '';
+    let sum = 0;
+    cart.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.name} - ${item.price} €`;
+        items.appendChild(li);
+        sum += item.price;
+    });
+
+    count.textContent = cart.length;
+    total.textContent = sum.toFixed(2);
+}
+
+function toggleCart() {
+    const cartContainer = document.getElementById('cart-container');
+    cartContainer.classList.toggle('hidden');
+}
+
+function checkout() {
+    if(cart.length === 0) {
+        alert('Votre panier est vide !');
+        return;
+    }
+    alert(`Commande passée ! Total : ${document.getElementById('cart-total').textContent} €`);
+    cart = [];
+    updateCart();
+}
+
+// Barre de recherche
+function searchProducts() {
+    const query = document.getElementById('search-bar').value.toLowerCase();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+    displayProducts(filtered);
+}
+[
+    {"name": "Produit 1", "price": 25, "image": "produit1.jpg"},
+    {"name": "Produit 2", "price": 40, "image": "produit2.jpg"},
+    {"name": "Produit 3", "price": 15, "image": "produit3.jpg"}
+]
